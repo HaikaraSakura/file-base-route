@@ -25,11 +25,14 @@ class Action implements RequestHandlerInterface {
      * @throws MethodNotAllowedException
      */
     public function handle(ServerRequestInterface $request): ResponseInterface {
-        $refMethodAttrs = $this->refFunc->getAttributes(RequestMethodInterface::class, ReflectionAttribute::IS_INSTANCEOF) ?? [];
+        $refMethodAttrs = $this->refFunc->getAttributes(
+            RequestMethodInterface::class,
+            ReflectionAttribute::IS_INSTANCEOF
+        ) ?? [];
 
         // RequestMethod属性がなければ判定なしで実行
         if (count($refMethodAttrs) === 0) {
-            return ($this->actionInvoker)($this->refFunc->getClosure());
+            return ($this->actionInvoker)($this->refFunc->getClosure(), $request);
         }
 
         $method = $request->getMethod();
@@ -39,9 +42,9 @@ class Action implements RequestHandlerInterface {
             $methodAttr = $refMethodAttr->newInstance();
 
             if ($methodAttr->equals($method)) {
-                return ($this->actionInvoker)($this->refFunc->getClosure());
+                return ($this->actionInvoker)($this->refFunc->getClosure(), $request);
             }
-        } 
+        }
 
         throw new MethodNotAllowedException();
     }

@@ -16,16 +16,12 @@ use Haikara\FileBaseRoute\Exception\ActionException;
 class Explorer {
     protected string $baseDirectory;
 
-    /**
-     * @var array<string,string>
-     */
-    protected array $namedRoutePatterns;
-
     public function __construct(
         protected string $basePath,
         string $baseDirectory,
     ) {
-        $this->baseDirectory = rtrim(realpath($baseDirectory), '/');
+        $this->basePath = '/' . trim(realpath($basePath), '/');
+        $this->baseDirectory = '/' . trim(realpath($baseDirectory), '/');
     }
 
     /**
@@ -34,11 +30,10 @@ class Explorer {
      * @throws ActionException
      */
     public function explore(ServerRequestInterface $request): array {
-        $baseDirectory = rtrim(realpath($this->baseDirectory), '/');
         $requestPath = substr($request->getUri()->getPath(), strlen($this->basePath));
 
         $routeIterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator($baseDirectory, FilesystemIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator($this->baseDirectory, FilesystemIterator::SKIP_DOTS)
         );
 
         $refAction = null;
@@ -55,8 +50,8 @@ class Explorer {
                 continue;
             }
 
-            $pattern = substr($fileinfo->getRealPath(), strlen($baseDirectory));
-            $directory = substr($fileinfo->getPath(), strlen($baseDirectory));
+            $pattern = substr($fileinfo->getRealPath(), strlen($this->baseDirectory));
+            $directory = '/' . trim(substr($fileinfo->getPath(), strlen($this->baseDirectory)), '/');
 
             if (str_starts_with($filename, 'index.')) {
                 // ディレクトリのパスをルーティングパターンとする
@@ -66,7 +61,6 @@ class Explorer {
                 $offset = strpos($filename, '.');
                 $pattern = $directory . '/' . substr($filename, 0, $offset);
             }
-
             $action = require $fileinfo->getRealPath();
 
             if (!is_callable($action)) {

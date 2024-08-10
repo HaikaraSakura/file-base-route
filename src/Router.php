@@ -32,7 +32,10 @@ class Router implements RequestHandlerInterface {
     public function __construct(protected string $baseDirectory) {
         $this->requestHandler = new MiddlewareStack();
         $this->resolver = static fn (string $middlewareName) => new $middlewareName();
-        $this->actionInvoker = static fn (Closure $action) => $action();
+        $this->actionInvoker = static function (Closure $action, ServerRequestInterface $request) {
+            return $action($request);
+        };
+
     }
 
     public function setBasePath(string $basePath): void {
@@ -40,9 +43,13 @@ class Router implements RequestHandlerInterface {
     }
 
     public function setContainer(ContainerInterface $container): void {
-        $this->resolver = fn (string $key) => $container->get($key);
+        $this->resolver = static fn (string $key) => $container->get($key);
     }
 
+    /**
+     * @param callable(Closure $action, ServerRequestInterface $request): ResponseInterface	 $actionInvoker
+     * @return void
+     */
     public function setActionInvoker(callable $actionInvoker): void {
         $this->actionInvoker = $actionInvoker;
     }
