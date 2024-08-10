@@ -14,13 +14,11 @@ use Haikara\FileBaseRoute\Attribute\RouteName;
 use Haikara\FileBaseRoute\Exception\ActionException;
 
 class Explorer {
+    protected string $basePath;
     protected string $baseDirectory;
 
-    public function __construct(
-        protected string $basePath,
-        string $baseDirectory,
-    ) {
-        $this->basePath = '/' . trim(realpath($basePath), '/');
+    public function __construct(string $basePath, string $baseDirectory) {
+        $this->basePath = '/' . trim($basePath, '/');
         $this->baseDirectory = '/' . trim(realpath($baseDirectory), '/');
     }
 
@@ -30,7 +28,7 @@ class Explorer {
      * @throws ActionException
      */
     public function explore(ServerRequestInterface $request): array {
-        $requestPath = substr($request->getUri()->getPath(), strlen($this->basePath));
+        $requestPath = '/' . substr($request->getUri()->getPath(), strlen($this->basePath));
 
         $routeIterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($this->baseDirectory, FilesystemIterator::SKIP_DOTS)
@@ -59,7 +57,7 @@ class Explorer {
             } else{
                 // 拡張子を取り除いた文字列をルーティングパターンとする
                 $offset = strpos($filename, '.');
-                $pattern = $directory . '/' . substr($filename, 0, $offset);
+                $pattern = rtrim($directory, '/') . '/' . substr($filename, 0, $offset);
             }
             $action = require $fileinfo->getRealPath();
 
