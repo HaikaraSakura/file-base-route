@@ -88,8 +88,8 @@ class Explorer {
 
                 foreach ($patternSegments as $index => $patternSegment) {
                     // プレースホルダーなら無条件で合致扱い
-                    if (str_starts_with($patternSegment, ':')) {
-                        $argKey = ltrim($patternSegment, ':');
+                    if (static::isPlaceholder($patternSegment)) {
+                        $argKey = rtrim(ltrim($patternSegment, '{'), '}');
                         $args[$argKey] = $requestPathSegments[$index];
                         continue;
                     }
@@ -118,6 +118,6 @@ class Explorer {
     }
 
     protected static function isPlaceholder(string $pattern): bool {
-        return str_contains($pattern, ':');
+        return str_starts_with($pattern, '{') && str_ends_with($pattern, '}');
     }
 }
