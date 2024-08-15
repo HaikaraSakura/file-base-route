@@ -75,7 +75,7 @@ class Explorer {
                 $namedRoutePatterns[$routeName] = $pattern;
             }
 
-            if (static::isPlaceholder($pattern)) {
+            if (static::isDynamicRoute($pattern)) {
                 $args = [];
 
                 $requestPathSegments = explode('/', trim($requestPath, '/'));
@@ -115,6 +115,10 @@ class Explorer {
         }
 
         return ['refFunc' => $refAction, 'request' => $request];
+    }
+
+    protected static function isDynamicRoute(string $pattern): bool {
+        return str_contains($pattern, '{') && str_contains($pattern, '}');
     }
 
     protected static function isPlaceholder(string $pattern): bool {
